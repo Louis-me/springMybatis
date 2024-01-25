@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/test?characterEncoding=utf8&amp;allowMultiQueries=true&amp;serverTimezone=UTC"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="autoCommit" value="true"/>
+        <property name="connectionTimeout" value="5000" />
+        <property name="idleTimeout" value="60" />
+    </bean>
+    <!--jdbc的xml配置-->
+    <bean id="myDataSource" class="com.zaxxer.hikari.HikariDataSource">
+        <constructor-arg name="configuration" ref="hikariConfig"/>
+    </bean>
+    <!--mybatis-->
+    <!--SqlSessionFactory-->
+    <!--声明的是mybatis中提供的SqlSessionFactoryBean类，这个类内部创建SqlSessionFactory-->
+    <bean id="SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--set注入，把数据库连接池付给dataSource属性-->
+        <property name="dataSource" ref="myDataSource"/>
+        <!--mybatis主配置文件的位置
+           configLocation属性是Resource类型，读取配置文件
+           它的赋值使用的是value ， 指定文件的路径，使用的是classpath：表示文件的位置
+       -->
+        <property name="configLocation" value="classpath:mybatis.xml"/>
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <props>
+                            <prop key="helperDialect">mysql</prop>
+                        </props>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <!--创建 dao对象
+         使用SqlSession的getMapper(userDao.class)
+         MapperScannerConfigurer在内部调用getMapper()生成每个dao接口的代理对象
+     -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--指定的是SqlSessionFactory对象的id-->
+        <property name="sqlSessionFactoryBeanName" value="SqlSessionFactory"/>
+        <!--指定包名，包名是dao接口所在的包名
+           MapperScannerConfigurer会扫描这个包中的所有接口，把每个接口都执行
+           一次getMapper()方法，得到每个接口的dao对象
+           创建好的dao对象放入到spring的容器中
+
+           dao默认对象的名称：是接口名字的首字母小写
+       -->
+
+        <property name="basePackage" value="xyz.shi.dao"/>
+        <!--多个包-->
+        <!--<property name="basePackage" value="com.md.dao,com.md.dao2"/>-->
+
+    </bean>
+    <!--下面的就是自己定义的service-->
+    <!--声明service-->
+    <bean id="userService" class="xyz.shi.service.Impl.UserServiceImpl">
+        <!--就是上面通过创建的dao对象-->
+        <property name="userDao" ref="userDao"/>
+    </bean>
+    <bean id="personService" class="xyz.shi.service.Impl.PersonServiceImpl">
+        <property name="personDao" ref="personDao"/>
+    </bean>
+    <bean id="studentService" class="xyz.shi.service.Impl.StudentServiceImpl">
+        <property name="studentDao" ref="studentDao"/>
+    </bean>
+    <bean id="gradeService" class="xyz.shi.service.Impl.GradeServiceImpl">
+        <property name="gradeDao" ref="gradeDao"/>
+    </bean>
+</beans>
