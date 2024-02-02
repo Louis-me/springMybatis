@@ -57,7 +57,7 @@ public class StudentTest {
 
     @Test
     public void insertBatchStudent() {
-        // 一个年纪下有多个学生，而多个学生有多个科目
+        // 一个年纪下有多个学生，而多个学生有多个科目，
 
         // 设置年纪
         Grade grade = new Grade();
